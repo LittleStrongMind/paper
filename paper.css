@@ -1,0 +1,88 @@
+html,
+body
+{
+	width: 100%;
+	height: 100%;
+	/**
+	to prevent from having space around the divs
+	even when the margin is set to 0
+	**/
+	font-size: 0;
+}
+
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+
+body {
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	perspective: 1000px;
+	overflow: hidden;
+	background: black;
+
+}
+
+
+.map
+{
+	
+	transform-origin: center;
+	transform-style: preserve-3d;
+	
+	transition: transform .3s linear;
+	
+}
+
+/**
+	.map-group are here to hold together two adjacent pieces
+	of the map so it makes it easier to move them when the
+	offset between the inner pieces and the outer pieces
+	change due to rotation manipulations.
+**/
+.map-group
+{
+
+	display: inline-block;
+	transform-style: preserve-3d;
+
+}
+
+
+.map-piece
+{
+
+	position: relative;
+	display: inline-block;
+
+	/**
+		I use preserve-3d to be able to apply hidden
+		backface-visibility for images in the map-pieces
+		elements.
+	**/
+	transform-style: preserve-3d;	
+}
+
+.map-piece-right { transform-origin: left; }
+
+.map-piece-left { transform-origin: right; }
+
+
+.map-piece-shadow
+{
+	width: 100%;
+	height: 100%;
+	
+	/**
+		The opacity of the shadow will be changed upon
+		the orientation of the map faces by the js
+	**/
+	opacity: 0;
+}
