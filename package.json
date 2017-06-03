@@ -1,0 +1,28 @@
+{
+  "name": "paper",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebundle": "mkdir -p dist",
+    "bundle": "browserify ./index.js -o ./dist/paper.js -t babelify --presets env"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LittleStrongMind/paper.git"
+  },
+  "author": "LittleStrongMind <josuavadeleux@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LittleStrongMind/paper/issues"
+  },
+  "homepage": "https://github.com/LittleStrongMind/paper#readme",
+  "devDependencies": {
+    "babel-preset-env": "^1.5.1",
+    "babelify": "^7.3.0"
+  },
+  "dependencies": {
+    "lodash.merge": "^4.6.0"
+  }
+}
