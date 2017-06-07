@@ -77,6 +77,10 @@ class Helpers {
 	// TODO Improve the code.
 	static rotate(element, value, axis)
 	{
+		if (!element.style) {
+			throw new Error(`Can't apply transform on non DOM element '${element}'`);
+		}
+		
 		if (element.style.transform) {
 			element.style.transform = Helpers.rotateCSS(value, axis);
 		} else {
@@ -96,6 +100,10 @@ class Helpers {
 	// TODO Improve the code.
 	static translate(element, value, axis)
 	{
+		if (!element.style) {
+			throw new Error(`Can't apply transform on non DOM element`);
+		}
+
 		if (element.style.transform) {
 			element.style.transform += Helpers.translateCSS(value, axis);
 		} else {
@@ -125,29 +133,48 @@ class Helpers {
 		}
 	}
 
+	/**
+		Contains all polyfill functions.
+	**/
+	static polyfill ()
+	{
+		if (!('remove' in Element.prototype)) {
+			Element.prototype.remove = function() {
+				if (this.parentNode) {
+					this.parentNode.removeChild(this);
+				}
+			};
+		}
+	}
+
 }
 
 class Paper {
 
 	constructor (selector, customSpecs)
 	{
-
+		
+		Helpers.polyfill();
+		
 		// Defaults variables.
+		/**
+			TODO Simplify this to something easier to manipulate.
+		**/
 		this.defaultsSpecs = {
 			map: {
-				foldAngle: 25.0,
+				foldAngle: 40.0,
 				rotation: { x: 25.0, y: 0.0, z: 0.0 },
 				offset: 0
 			},
 			pieces: {
-				amount: 4,
+				amount: 3,
 				width: 	100.0,
 				height: 400.0,
 				ratio:  4.0,
 				aspect: {
 					// TODO Add opacity and gradient.
 					background: '#FFF',
-					seams: 		'#000000',
+					seams: 		'#FFFFFA',
 					shadow:		'#000000'
 				}
 				
@@ -157,6 +184,8 @@ class Paper {
 
 		this.specs = _merge(this.defaultsSpecs, customSpecs || {});
 
+		this.selector = selector;
+		
 		this.initDOM(selector);
 	}
 
@@ -191,7 +220,7 @@ class Paper {
 			let aspect = this.specs.pieces.aspect;
 			
 			// Set the customizable styles of the pieces.
-			
+						
 			// Left piece
 			pieceLeft.style.backgroundColor = aspect.background;
 			pieceLeft.style.boxShadow       = `inset 0 0 45px ${aspect.seams}`;
@@ -229,17 +258,30 @@ class Paper {
 
 	calculate ()
 	{
-		let pieces = this.specs.pieces,
-			map = this.specs.map;
+		let pieces = this.specs.pieces;
+		let map    = this.specs.map;
 
 		let rotatedPiecesWidth = pieces.width * Math.cos( map.foldAngle * (Math.PI / 180.0) );
-				
-		pieces.height = (pieces.ratio * pieces.width) + 'px';
-		
-		map.offset = 2.0 * pieces.width - 2 * rotatedPiecesWidth /** + .45 **/;
-		
+		pieces.height = (pieces.ratio * pieces.width);
+		map.offset = 2 * (pieces.width - rotatedPiecesWidth) /** + .45 **/;
 	}
 
+	update (newSpecs)
+	{
+		if (!newSpecs)
+		{
+			console.error('No new specs has been specified in the parameters.');
+			return false;
+		}
+		
+		this.specs = _merge(this.specs, newSpecs);
+
+		this.map.remove();
+				
+		this.initDOM(this.selector);
+		this.render();
+	}
+	
 	/**
 		Reset all the transform properties of the map.
 	**/
@@ -270,6 +312,8 @@ class Paper {
 		Helpers.rotate(this.map, map.rotation.z, 'z');
 		Helpers.rotate(this.map, map.rotation.x, 'x');
 		
+		let compensate = 0;
+		
 		for (var i = 0; i < this.groups.length; i++)
 		{
 			cursor = this.groups[i];
@@ -288,28 +332,18 @@ class Paper {
 			// NOTE WORK IN PROGRESS
 
 			center = Helpers.center(this.groups);
-
-			// Compensate the gap created by the rotation of the pieces.
 			
-			// If there is an odd number of groups.
-			if (center.length) {
-				
-				// The two pieces à the center are sticked together.
-				// TODO Make this run only once.
-				center[0].group.style.transform = Helpers.translateCSS(map.offset / 2, 'x');
-				center[1].group.style.transform = Helpers.translateCSS(-map.offset / 2, 'x');
-								
-				this.groups[0].group.style.transform = Helpers.translateCSS(map.offset * 1.5, 'x');
-				this.groups[this.groups.length - 1].group.style.transform = Helpers.translateCSS(1.5 * -map.offset, 'x');
-			}
-			// If there is an even number of groups.
-			else {
-				console.log('even');
-			}
+			// Compensate the gap created by the rotation of the pieces.
+			Helpers.translate(cursor.group, i * -map.offset, 'x');
+			
+			compensate += i * map.offset;
 			
 		}
+		
+		Helpers.translate(this.map, compensate / 2, 'x');
 	}
 }
+
 
 window.Paper = Paper;
 
